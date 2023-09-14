@@ -1,1 +1,1 @@
-# Serafettin-clarusway-aws-devops-tr-14
+# clarusway-aws-devops-tr-14
