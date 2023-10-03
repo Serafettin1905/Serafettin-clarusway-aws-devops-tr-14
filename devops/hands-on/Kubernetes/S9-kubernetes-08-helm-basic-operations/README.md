@@ -667,7 +667,7 @@ helm uninstall from-local-repo
 helm repo remove mylocalrepo
 ```
 
-## Part 5 - Set up a Helm v3 chart repository in Github
+## Part 5 - Set up a Helm v3 chart repository in Github (Optional)
 
 - Create a GitHub repo and name it `mygithubrepo`.
 
