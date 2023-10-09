@@ -1,4 +1,4 @@
-# Hands-on Ansible-04: Creating directory layout, error handling and controlling execution with strategies in ansible
+# Hands-on Ansible-04: Creating directory layout, error handling and controlling execution with strategies in ansible with template module
 
 The purpose of this hands-on training is to give students the knowledge of best parctices in ansible playbooks.
 
@@ -63,35 +63,19 @@ mkdir ansible-lesson
 cd ansible-lesson
 ```
 
-- Copy the phonebook app files (`phonebook-app.py`, `requirements.txt`, `init.sql`, `templates`) to the control node from your github repository.
+- Copy the phonebook app files (`phonebook-app.j2`, `requirements.txt`, `init.sql`, `templates`) to the control node from your github repository.
 
-- Do not forget to change db server private ip in phonebook-app.py. (`app.config['MYSQL_DATABASE_HOST'] = "<db_server private ip>"`)
-
-- Create a file named ```ping-playbook.yml``` and paste the content below.
+- Ping the hosts to check hosts are ready.
 
 ```bash
-touch ping-playbook.yml
-```
-
-```yml
-- name: ping them all
-  hosts: all
-  tasks:
-    - name: pinging
-      ansible.builtin.ping:
-```
-
-- Run the command below for pinging the servers.
-
-```bash
-ansible-playbook ping-playbook.yml
+ansible all -m ping -o
 ```
 
 - Explain the output of the above command.
 
 ## Part4 - Install, Start, Enable Mysql and Run The Phonebook App.
 
-- Create a playbook name `db_config.yml` and configure db_server.
+- Create a playbook name `servers_config.yml` and configure db_server.
 
 ```yml
 - name: db configuration
@@ -173,31 +157,7 @@ ansible-playbook ping-playbook.yml
       ansible.builtin.service:
         name: mysql
         state: restarted
-```
 
-- Explain what these tasks and modules.
-
-- Run the playbook.
-
-```bash
-ansible-playbook db_config.yml
-```
-
-- Open up a new Terminal or Window and connect to the ```db_server``` instance and check if ```MYSQL``` is installed, started, and enabled.
-
-```bash
-mysql --version
-```
-
-- Or, you can do it with ad-hoc command.
-
-```bash
-ansible db_server -m shell -a "mysql --version"
-```
-
-- Create another playbook name `web_config.yml` and configure web_server.
-
-```yml
 - name: web server configuration
   hosts: web_server
   vars:
@@ -216,9 +176,9 @@ ansible db_server -m shell -a "mysql --version"
         update_cache: yes
 
     - name: copy the app file to the web server
-      ansible.builtin.copy:
-        src: /home/ubuntu/ansible-lesson/phonebook/phonebook-app.py
-        dest: ~/
+      ansible.builtin.template:
+        src: /home/ubuntu/ansible-lesson/phonebook/phonebook-app.j2
+        dest: ~/phonebook-app.py
 
     - name: copy the requirements file to the web server
       ansible.builtin.copy:
@@ -245,7 +205,19 @@ ansible db_server -m shell -a "mysql --version"
 - Run the playbook.
 
 ```bash
-ansible-playbook web_config.yml
+ansible-playbook servers_config.yml
+```
+
+- Open up a new Terminal or Window and connect to the ```db_server``` instance and check if ```MYSQL``` is installed, started, and enabled.
+
+```bash
+mysql --version
+```
+
+- Or, you can do it with ad-hoc command.
+
+```bash
+ansible db_server -m shell -a "mysql --version"
 ```
 
 - Check if you can see the website on your browser.
@@ -384,9 +356,9 @@ mkdir tasks && cd tasks && touch db_tasks.yml web_tasks.yml
         update_cache: yes
 
     - name: copy the app file to the web server
-      ansible.builtin.copy:
-        src: /home/ubuntu/ansible-lesson/phonebook/phonebook-app.py
-        dest: ~/
+      ansible.builtin.template:
+        src: /home/ubuntu/ansible-lesson/phonebook/phonebook-app.j2
+        dest: ~/phonebook-app.py
 
     - name: copy the requirements file to the web server
       ansible.builtin.copy:
@@ -508,7 +480,6 @@ ansible-playbook playbook2.yml
 ```
 
 - We will see that the tasks run non-paralell with `strategy: free` parameter.
-
 
 - By default, Ansible runs each task on all hosts affected by a play before starting the next task on any host, using 5 forks. (By default, Ansible can create five forks at a time, and this is defined in the Ansible configuration file, ansible.cfg.) If you want to change this default behavior, you can use a different strategy plugin, change the number of forks, or apply one of several play-level keywords like ``serial``. This is not a separate strategy. This is based on the linear strategy, but you can control the number of servers executed at once or in a batch. In the playbook, we do not have a strategy option, so it uses linear strategy by default. But there is a new option called serial where you can specify how many servers you would like to process together.
 
