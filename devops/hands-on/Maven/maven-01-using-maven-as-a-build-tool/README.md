@@ -6,7 +6,7 @@ Purpose of the this hands-on training is to teach the students how to use Maven 
 
 At the end of the this hands-on training, students will be able to;
 
-- install Maven and Java-11 on Amazon Linux 2 EC2 instance
+- install Maven and Java-11 on Amazon Linux EC2 instance
 
 - explain various build phases of a Java Application
 
@@ -15,14 +15,14 @@ At the end of the this hands-on training, students will be able to;
 
 ## Outline
 
-- Part 1 - Launch Amazon Linux 2 EC2 Instance with Cloudformation Template
+- Part 1 - Launch Amazon Linux EC2 Instance with Cloudformation Template
 
 - Part 2 - Generate a Java application using Maven's Archetype Plugin
 
 - Part 3 - Run Maven Commands
 
 
-## Part 1 - Launch Amazon Linux 2 EC2 Instance and Connect with SSH
+## Part 1 - Launch Amazon Linux EC2 Instance and Connect with SSH
 
 - Launch an EC2 instance using ```maven-java-template.yml``` file located in this folder.
     - This template will create an EC2 instance with Java-11 and Maven.
@@ -86,10 +86,6 @@ tree
 - Go into the project's root folder.
 
 - Replace the content of the ```pom.xml``` file with the content of the pom.xml file in this repo.
-
-- Since we've install Java-11 on the EC2 machine, uncomment the ```properties``` tag of the new pom.xml file.
-
-- Explain that the ```maven.compiler.source``` property specifies the version of source code accepted and the ```maven.compiler.target``` generates class files compatible with the specified version of JVM.
 
 - Explain that ```dependencyManagement``` section in the pom file will import multiple dependencies with compatible versions.  
 
@@ -215,21 +211,6 @@ mvn install
 
 >### mvn site
 
-- Add two more plugins to run the command ```mvn site```
-
-```xml
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-site-plugin</artifactId>
-    <version>3.7.1</version>
-</plugin>
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-project-info-reports-plugin</artifactId>
-    <version>3.0.0</version>
-</plugin>
-```
-
 - Run the command below.
 
 ```bash
@@ -252,10 +233,90 @@ sudo systemctl enable httpd
 sudo cp -a site/. /var/www/html
 ```
 
+- Go to http://<public-node-ip> on browser to check project site.
 
 
+## Multi-stage builds with maven (Optional)
 
+- Install docker
 
+```bash
+sudo yum update -y
+sudo yum install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo systemctl status docker
+sudo usermod -a -G docker ec2-user
+newgrp docker
+```
 
+- Create a folder named `docker`.
 
+```
+mkdir docker && cd docker
+```
 
+- Create a maven project.
+
+```bash
+mvn archetype:generate -DgroupId=com.clarus.maven -DartifactId=myproject -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+```
+
+- Add the maven-assembly-plugin to the pom file to run application.
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <executions>
+          <execution>
+              <phase>package</phase>
+              <goals>
+                  <goal>single</goal>
+              </goals>
+              <configuration>
+                  <archive>
+                  <manifest>
+                      <mainClass>
+                          com.clarus.maven.App
+                      </mainClass>
+                  </manifest>
+                  </archive>
+                  <descriptorRefs>
+                      <descriptorRef>jar-with-dependencies</descriptorRef>
+                  </descriptorRefs>
+              </configuration>
+          </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+- Create a multi-stage Dockerfile.
+
+```Dockerfile
+FROM maven:3.9.4-eclipse-temurin-8-alpine AS builder
+COPY /myproject /app
+WORKDIR /app
+RUN mvn clean package
+
+FROM openjdk:11-jre-slim
+COPY --from=builder /app/target/myproject-1.0-SNAPSHOT-jar-with-dependencies.jar /app/app.jar
+WORKDIR /app
+CMD ["java","-jar","app.jar"]
+```
+
+- Build the image.
+
+```bash
+docker build -t maven-project .
+```
+
+- Run the container.
+
+```
+docker run maven-project
+```

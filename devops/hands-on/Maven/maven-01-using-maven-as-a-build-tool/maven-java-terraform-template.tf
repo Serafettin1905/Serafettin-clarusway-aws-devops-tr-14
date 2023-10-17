@@ -1,5 +1,5 @@
 //This Terraform Template creates an EC2 Instance with Java-11 and Maven.
-//Amazon Linux 2 (ami-0947d2ba12ee1ff75) will be used as an EC2 Instance with
+//Amazon Linux 2023 will be used as an EC2 Instance with
 //custom security group allowing SSH connections from anywhere on port 22.
 
 provider "aws" {
@@ -47,10 +47,10 @@ resource "aws_instance" "maven-ec2" {
 
   user_data = <<-EOF
                 #! /bin/bash
-                dnf update -y
-                dnf install java-11-amazon-corretto -y
+                yum update -y
+                yum install java-11-amazon-corretto-devel -y
                 cd /home/ec2-user/
-                wget https://dlcdn.apache.org/maven/maven-3/3.9.1/binaries/apache-maven-3.9.1-bin.tar.gz
+                wget https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.tar.gz
                 tar -zxvf $(ls | grep apache-maven-*-bin.tar.gz)
                 rm -rf $(ls | grep apache-maven-*-bin.tar.gz)
                 echo "M2_HOME=/home/ec2-user/$(ls | grep apache-maven)" >> /home/ec2-user/.bash_profile
