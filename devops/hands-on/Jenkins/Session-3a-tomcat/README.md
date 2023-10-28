@@ -77,14 +77,14 @@ tar.gz (pgp, sha512)
   
 ```bash
 cd /tmp
-wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.8/bin/apache-tomcat-10.1.8.zip
+wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.15/bin/apache-tomcat-10.1.15.zip
 ```
 
 - Unzip tomcat file and move to `/opt`
   
 ```bash
 unzip apache-tomcat-*.zip
-sudo mv apache-tomcat-10.1.8 /opt/tomcat
+sudo mv apache-tomcat-10.1.15 /opt/tomcat
 ```
 
 ## Part 4 - Configure tomcat
@@ -133,7 +133,7 @@ cd /opt/tomcat/conf
 
 - Go to the `/opt/tomcat/webapps/host-manager/META-INF/` and edit file `context.xml`. Actually commenting out the tagged `CookieProcessor` and `Valve` parts.
 
-```bash
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
@@ -164,7 +164,7 @@ cd /opt/tomcat/conf
 
 - Go to the `/opt/tomcat/webapps/manager/META-INF/` and edit file `context.xml`. Actually commenting out the tagged `CookieProcessor` and `Valve` parts.
 
-```bash
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
@@ -220,7 +220,7 @@ sudo vi tomcat.service
 ```
 
 - Copy and paste this code in "tomcat.service" file.
-```
+```sh
 [Unit]
 Description=Apache Tomcat Web Application Container
 After=syslog.target network.target
